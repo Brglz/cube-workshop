@@ -1,15 +1,18 @@
 // TODO: Require Controllers...
 const { Router } = require('express');
+const { getAllCubes } = require('../controllers/cubes');
+const { getCube } = require('../controllers/database-controller');
 
 const router = Router();
 
 router.get('/', (req, res) => {
-    res.render('index', { title: 'Home | Create Workshop' });
+    getAllCubes((cubes) => {
+        res.render('index', {
+            title: 'Cube Workshop',
+            cubes
+        })
+    })
 })
-
-// router.get('/create', (req, res) => {
-//     res.render('create'), { title: 'Create Cube | Create Workshop' };
-// })
 
 router.get('/about', (req, res) => {
     res.render('about', { title: 'About  | Create Workshop' });
@@ -20,7 +23,9 @@ router.get('/create', (req, res) => {
 })
 
 router.get('/details/:id', (req, res) => {
-    res.render('details', { title: 'Details | Create Workshop' });
+    getCube(req.params.id, (cube) => {
+        res.render('details', { title: 'Details | Create Workshop', ...cube });
+    })
 })
 
 router.get('*', (req, res) => {
