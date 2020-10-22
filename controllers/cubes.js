@@ -1,4 +1,7 @@
+const accessory = require('../models/accessory');
 const Cube = require('../models/cube');
+const Accessory = require('../models/accessory');
+const accessories = require('./accessories');
 
 const getAllCubes = async () => {
     const cubes = await Cube.find().lean();
@@ -11,6 +14,18 @@ const getCube = async (id) => {
     return cube
 }
 
+const getCubeWithAccessories = async (id) => {
+    const cube = await Cube.findById(id).populate('accessories').lean();
+    console.log(cube);
+    return cube
+}
 
+const updateCube = async (cubeId, accessoryId) => {
+    await Cube.findByIdAndUpdate(cubeId, {
+        $addToSet: {
+            accessories: [accessoryId]
+        }
+    })
+}
 
-module.exports = { getAllCubes, getCube };
+module.exports = { getAllCubes, getCube, updateCube, getCubeWithAccessories };
