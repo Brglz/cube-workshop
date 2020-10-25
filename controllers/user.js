@@ -4,6 +4,10 @@ const bcrypt = require('bcrypt');
 
 const privateKey = 'secret';
 
+const generateUserToken = (userObj) => {
+    return token = jwt.sign({ userId: (userObj)._id, username: userObj.username }, privateKey)
+}
+
 const saveUser = async (req, res) => {
     const { username, password } = req.body;
 
@@ -17,11 +21,26 @@ const saveUser = async (req, res) => {
 
     const userObj = await user.save();
 
-    const token = jwt.sign({ userId: (userObj)._id, username: userObj.username }, privateKey)
+    const token = generateUserToken(userObj);
+
 
     res.cookie('aid', token);
 
     return true
 }
 
-module.exports = saveUser;
+const verifyUser = async (req, res) => {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username })
+
+    const status = await bcrypt.compare(password, user.password);
+    if (status) {
+        const token = generateUserToken(user);
+        res.cookie('aid', token);
+    }
+
+    return status;
+}
+
+module.exports = { saveUser, verifyUser };
