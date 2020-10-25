@@ -1,5 +1,5 @@
-const { Router } = require('express');
 const express = require('express');
+const saveUser = require('../controllers/user');
 
 const router = express.Router();
 
@@ -21,10 +21,11 @@ router.get('/register', (req, res) => {
     res.render('registerPage', { title: 'Register' })
 })
 
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
+    await saveUser(req, res);
 
+    return res.redirect('/');
 
-    res.redirect('/login');
 })
 
 
