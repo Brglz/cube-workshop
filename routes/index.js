@@ -74,7 +74,6 @@ router.get('/attach/accessory/:id', async (req, res) => {
         isNotFullyAttached: cube.accessories.length !== accessories.length && accessories.length > 0
     })
 
-    console.log(cube.accessories.length === accessories.length, 'THIS');
 
 })
 
