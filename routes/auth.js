@@ -1,5 +1,5 @@
 const express = require('express');
-const saveUser = require('../controllers/user');
+const { saveUser, verifyUser } = require('../controllers/user');
 
 const router = express.Router();
 
@@ -7,10 +7,11 @@ router.get('/login', (req, res) => {
     res.render('loginPage', { title: 'Login' })
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
+    const status = await verifyUser(req, res);
 
+    return status ? res.redirect('/') : res.redirect('*');
 
-    res.redirect('/');
 });
 
 router.post('/logout', (req, res) => {
