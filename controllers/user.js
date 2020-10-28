@@ -14,33 +14,119 @@ const saveUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = new User({
-        username,
-        password: hashedPassword
-    })
+    try {
+        const user = new User({
+            username,
+            password: hashedPassword
+        })
 
-    const userObj = await user.save();
+        const userObj = await user.save();
 
-    const token = generateUserToken(userObj);
+        const token = generateUserToken(userObj);
 
 
-    res.cookie('aid', token);
+        res.cookie('aid', token);
 
-    return true
+        return token
+    } catch (err) {
+        return {
+            error: true,
+            message: err
+        }
+    }
+
+
 }
 
 const verifyUser = async (req, res) => {
     const { username, password } = req.body;
 
-    const user = await User.findOne({ username })
-
-    const status = await bcrypt.compare(password, user.password);
-    if (status) {
-        const token = generateUserToken(user);
-        res.cookie('aid', token);
+    try {
+        const user = await User.findOne({ username })
+        if (!user) {
+            return {
+                error: true,
+                message: 'There is no such user'
+            }
+        }
+        const status = await bcrypt.compare(password, user.password);
+        if (status) {
+            const token = generateUserToken(user);
+            res.cookie('aid', token);
+        }
+        return {
+            error: !status,
+            message: status || 'Wrong password'
+        }
+    } catch (err) {
+        return {
+            error: true,
+            message: 'There is no such user',
+            status
+        }
     }
 
-    return status;
+
 }
 
-module.exports = { saveUser, verifyUser };
+const checkAuthentication = (req, res, next) => {
+    const token = req.cookies['aid'];
+
+    if (!token) {
+        return res.redirect('/')
+    }
+
+    try {
+        jwt.verify(token, 'secret');
+        next();
+    } catch (error) {
+        return res.redirect('/')
+    }
+}
+
+const guestAccess = (req, res, next) => {
+    const token = req.cookies['aid'];
+
+    if (token) {
+        return res.redirect('/')
+    }
+
+    next();
+}
+
+const getUserStatus = (req, res, next) => {
+    const token = req.cookies['aid'];
+
+    if (!token) {
+        req.isLogged = false;
+    }
+
+    try {
+        jwt.verify(token, 'secret');
+        req.isLogged = true;
+    } catch (error) {
+        req.isLogged = false;
+    }
+    next();
+}
+
+const authAccessJSON = (req, res, next) => {
+    const token = req.cookies['aid'];
+
+    if (!token) {
+        return res.json({
+            error: 'Not authenticated'
+        })
+    }
+
+    try {
+        jwt.verify(token, 'secret');
+        next();
+    } catch (error) {
+        return res.json({
+            error: 'Not authenticated'
+        })
+    }
+}
+
+module.exports = { saveUser, verifyUser, checkAuthentication, guestAccess, getUserStatus, authAccessJSON };

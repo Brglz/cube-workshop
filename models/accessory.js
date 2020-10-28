@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const AccessorySchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    description: { type: String, required: true, maxlength: 300 },
+    name: { type: String, required: true, match: [/^[A-Za-z1-9 ]+$/, "Accessory is not valid"], minlength: 5 },
+    description: { type: String, required: true, maxlength: 500, match: [/^[A-Za-z1-9 ]+$/, "Accessory is not valid"], minlength: 20 },
     imageUrl: { type: String, required: true },
     cubes: [{ type: 'ObjectId', ref: 'Cube' }]
 })
