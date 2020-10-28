@@ -1,14 +1,19 @@
 const express = require('express');
+const { checkAuthentication, getUserStatus, authAccessJSON } = require('../controllers/user');
+const { getCube, updateCube } = require('../controllers/cubes');
+const { getAccessories } = require('../controllers/accessories');
+const Accessory = require('../models/accessory');
 
 const router = express.Router();
 
-router.get('/create/accessory', (req, res) => {
+router.get('/create/accessory', checkAuthentication, getUserStatus, (req, res) => {
     res.render('createAccessory', {
         title: 'Create Accessory',
+        isLogged: req.isLogged
     })
 })
 
-router.post('/create/accessory', async (req, res) => {
+router.post('/create/accessory', authAccessJSON, async (req, res) => {
     const {
         name, description, imageUrl
     } = req.body;
@@ -17,11 +22,20 @@ router.post('/create/accessory', async (req, res) => {
         name, description, imageUrl
     });
 
-    await accessory.save();
-    res.redirect('/');
+    console.log(accessory, 'ASDSDSDSDSDSDS');
+    try {
+        await accessory.save()
+        return res.redirect('/')
+    } catch (error) {
+        return res.render('createAccessory', {
+            title: 'Create Accessory',
+            isLogged: true,
+            error: 'Accessory details are not valid'
+        });
+    }
 })
 
-router.get('/attach/accessory/:id', async (req, res) => {
+router.get('/attach/accessory/:id', checkAuthentication, getUserStatus, async (req, res) => {
     const cube = await getCube(req.params.id)
     const accessories = await getAccessories();
 
@@ -37,13 +51,14 @@ router.get('/attach/accessory/:id', async (req, res) => {
         title: 'Attach Accessory',
         ...cube,
         accessories: notAttachedAccessories,
-        isNotFullyAttached: cube.accessories.length !== accessories.length && accessories.length > 0
+        isNotFullyAttached: cube.accessories.length !== accessories.length && accessories.length > 0,
+        isLogged: req.isLogged
     })
 
 
 })
 
-router.post('/attach/accessory/:id', async (req, res) => {
+router.post('/attach/accessory/:id', authAccessJSON, async (req, res) => {
     const {
         accessory
     } = req.body;

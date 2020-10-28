@@ -1,26 +1,27 @@
 const { Router } = require('express');
-const { getAllCubes, getCube, updateCube, getCubeWithAccessories } = require('../controllers/cubes');
-const { getAccessories } = require('../controllers/accessories');
-const Accessory = require('../models/accessory');
-const Cube = require('../models/cube');
+const { getAllCubes } = require('../controllers/cubes');
+const { getUserStatus } = require('../controllers/user');
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', getUserStatus, async (req, res) => {
     const cubes = await getAllCubes();
     res.render('index', {
         title: 'Cube Workshop',
-        cubes
+        cubes,
+        isLogged: req.isLogged
     })
+
+    console.log(req.isLogged);
 
 });
 
-router.get('/about', (req, res) => {
-    res.render('about', { title: 'About  | Create Workshop' });
+router.get('/about', getUserStatus, (req, res) => {
+    res.render('about', { title: 'About  | Create Workshop', isLogged: req.isLogged });
 })
 
-router.get('*', (req, res) => {
-    res.render('404', { title: 'Page Not Found' });
+router.get('*', getUserStatus, (req, res) => {
+    res.render('404', { title: 'Page Not Found', isLogged: req.isLogged });
 })
 
 
